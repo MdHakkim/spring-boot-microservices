@@ -1,0 +1,41 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: infra
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/MdHakkim/spring-boot-microservices.git
+    targetRevision: main
+    path: deploy/infra
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: mc-microservices
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: product-service
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/MdHakkim/spring-boot-microservices.git
+    targetRevision: main
+    path: helm/microservice
+    helm:
+      releaseName: product-service
+      valueFiles:
+        - ../values/product-service.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: mc-microservices
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
