@@ -1,0 +1,55 @@
+name: build-and-update
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'helm/values/**'
+      - 'argocd/**'
+      - 'deploy/**'
+
+permissions:
+  contents: write
+
+env:
+  ACR: acrsave8kubernetes.azurecr.io
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [discovery-server, api-gateway, product-service, order-service, inventory-service, notification-service]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.ACR }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          build-args: SERVICE=${{ matrix.service }}
+          push: true
+          tags: |
+            ${{ env.ACR }}/${{ matrix.service }}:${{ github.sha }}
+            ${{ env.ACR }}/${{ matrix.service }}:latest
+
+  update-tags:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update image tags for ArgoCD
+        run: |
+          for f in helm/values/*.yaml; do
+            yq -i ".image.tag = \"${GITHUB_SHA}\"" "$f"
+          done
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git commit -am "Deploy ${GITHUB_SHA::7}" || echo "No changes"
+          git push
