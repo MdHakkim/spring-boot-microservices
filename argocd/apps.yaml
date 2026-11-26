@@ -39,3 +39,26 @@ spec:
     automated:
       prune: true
       selfHeal: true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: discovery-server
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/MdHakkim/spring-boot-microservices.git
+    targetRevision: main
+    path: helm/microservice
+    helm:
+      releaseName: discovery-server
+      valueFiles:
+        - ../values/discovery-server.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: mc-microservices
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
