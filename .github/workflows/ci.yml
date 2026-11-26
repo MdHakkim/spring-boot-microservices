@@ -10,7 +10,10 @@ on:
 
 permissions:
   contents: write
-
+concurrency:
+  group: build-and-update
+  cancel-in-progress: false
+  
 env:
   ACR: acrsave8kubernetes.azurecr.io
 
