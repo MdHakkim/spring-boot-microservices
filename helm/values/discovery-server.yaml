@@ -1,0 +1,6 @@
+image:
+  repository: acrsave8kubernetes.azurecr.io/discovery-server
+  tag: latest
+containerPort: 8761
+service:
+  port: 8761
