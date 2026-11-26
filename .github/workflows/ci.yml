@@ -1,6 +1,7 @@
 name: build-and-update
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
     paths-ignore:
@@ -10,10 +11,11 @@ on:
 
 permissions:
   contents: write
+
 concurrency:
   group: build-and-update
   cancel-in-progress: false
-  
+
 env:
   ACR: acrsave8kubernetes.azurecr.io
 
@@ -43,22 +45,22 @@ jobs:
             ${{ env.ACR }}/${{ matrix.service }}:${{ github.sha }}
             ${{ env.ACR }}/${{ matrix.service }}:latest
 
-      update-tags:
-      needs: build
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v4
-  
-        - name: Update image tags for ArgoCD
-          run: |
-            git config user.name "github-actions"
-            git config user.email "github-actions@users.noreply.github.com"
+  update-tags:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update image tags for ArgoCD
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git pull --rebase origin main
+          for f in helm/values/*.yaml; do
+            yq -i ".image.tag = \"${GITHUB_SHA}\"" "$f"
+          done
+          git commit -am "Deploy ${GITHUB_SHA::7}" || { echo "No changes"; exit 0; }
+          for i in 1 2 3; do
+            git push origin main && break
             git pull --rebase origin main
-            for f in helm/values/*.yaml; do
-              yq -i ".image.tag = \"${GITHUB_SHA}\"" "$f"
-            done
-            git commit -am "Deploy ${GITHUB_SHA::7}" || { echo "No changes"; exit 0; }
-            for i in 1 2 3; do
-              git push origin main && break
-              git pull --rebase origin main
-            done
+          done
