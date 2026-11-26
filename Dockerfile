@@ -3,7 +3,7 @@ FROM maven:3.9-eclipse-temurin-17 AS build
 ARG SERVICE
 WORKDIR /src
 COPY . .
-RUN mvn -B -pl ${SERVICE} -am clean package -DskipTests -Djib.skip=true
+RUN mvn -B -s .mvn/settings.xml -pl ${SERVICE} -am clean package -DskipTests -Djib.skip=true
 
 # Stage 2: small runtime image
 FROM eclipse-temurin:17-jre
