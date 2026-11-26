@@ -1,0 +1,5 @@
+image:
+  repository: acrsave8kubernetes.azurecr.io/order-service
+  tag: latest
+env:
+  SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-order:5431/order-service

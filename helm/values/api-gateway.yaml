@@ -1,0 +1,7 @@
+image:
+  repository: acrsave8kubernetes.azurecr.io/api-gateway
+  tag: latest
+service:
+  type: NodePort
+  port: 8080
+  nodePort: 30080

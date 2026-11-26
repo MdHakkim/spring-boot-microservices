@@ -1,0 +1,5 @@
+image:
+  repository: acrsave8kubernetes.azurecr.io/inventory-service
+  tag: latest
+env:
+  SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-inventory:5432/inventory-service

@@ -1,0 +1,63 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-order-data
+  namespace: mc-microservices
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-order
+  namespace: mc-microservices
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: postgres-order
+  template:
+    metadata:
+      labels:
+        app: postgres-order
+    spec:
+      enableServiceLinks: false
+      containers:
+        - name: postgres
+          image: postgres:16
+          args: ["-p", "5431"]
+          ports:
+            - containerPort: 5431
+          env:
+            - name: POSTGRES_DB
+              value: order-service
+            - name: POSTGRES_USER
+              value: ptechie
+            - name: POSTGRES_PASSWORD
+              value: password
+            - name: PGDATA
+              value: /data/postgres/pgdata
+          volumeMounts:
+            - name: data
+              mountPath: /data/postgres
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: postgres-order-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-order
+  namespace: mc-microservices
+spec:
+  selector:
+    app: postgres-order
+  ports:
+    - port: 5431
+      targetPort: 5431

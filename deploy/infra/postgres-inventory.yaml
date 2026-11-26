@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-inventory-data
+  namespace: mc-microservices
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-inventory
+  namespace: mc-microservices
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: postgres-inventory
+  template:
+    metadata:
+      labels:
+        app: postgres-inventory
+    spec:
+      enableServiceLinks: false
+      containers:
+        - name: postgres
+          image: postgres:16
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: inventory-service
+            - name: POSTGRES_USER
+              value: ptechie
+            - name: POSTGRES_PASSWORD
+              value: password
+            - name: PGDATA
+              value: /data/postgres/pgdata
+          volumeMounts:
+            - name: data
+              mountPath: /data/postgres
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: postgres-inventory-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-inventory
+  namespace: mc-microservices
+spec:
+  selector:
+    app: postgres-inventory
+  ports:
+    - port: 5432
+      targetPort: 5432
