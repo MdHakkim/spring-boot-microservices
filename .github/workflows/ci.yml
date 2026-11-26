@@ -18,6 +18,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
+      max-parallel: 2
       matrix:
         service: [discovery-server, api-gateway, product-service, order-service, inventory-service, notification-service]
     steps:
