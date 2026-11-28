@@ -1,14 +1,19 @@
+---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: infra
+  name: order-service
   namespace: argocd
 spec:
   project: default
   source:
     repoURL: https://github.com/MdHakkim/spring-boot-microservices.git
     targetRevision: main
-    path: deploy/infra
+    path: helm/microservice
+    helm:
+      releaseName: order-service
+      valueFiles:
+        - ../values/order-service.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: mc-microservices
@@ -20,7 +25,7 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: product-service
+  name: inventory-service
   namespace: argocd
 spec:
   project: default
@@ -29,9 +34,9 @@ spec:
     targetRevision: main
     path: helm/microservice
     helm:
-      releaseName: product-service
+      releaseName: inventory-service
       valueFiles:
-        - ../values/product-service.yaml
+        - ../values/inventory-service.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: mc-microservices
@@ -43,7 +48,7 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: discovery-server
+  name: notification-service
   namespace: argocd
 spec:
   project: default
@@ -52,9 +57,32 @@ spec:
     targetRevision: main
     path: helm/microservice
     helm:
-      releaseName: discovery-server
+      releaseName: notification-service
       valueFiles:
-        - ../values/discovery-server.yaml
+        - ../values/notification-service.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: mc-microservices
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: api-gateway
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/MdHakkim/spring-boot-microservices.git
+    targetRevision: main
+    path: helm/microservice
+    helm:
+      releaseName: api-gateway
+      valueFiles:
+        - ../values/api-gateway.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: mc-microservices
